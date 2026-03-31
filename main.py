@@ -82,12 +82,12 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"Error crítico en socket: {e}")
         manager.disconnect(websocket)
 
-async def procesar_comando(accion: str, id_equipo: str = None, request: Request = None):
+async def procesar_comando(accion: str, id_asset: str = None, request: Request = None):
     try:
         params = dict(request.query_params) if request else {}
         comando = {"accion": accion, "params": params}
-        if id_equipo:
-            comando["id_equipo"] = id_equipo
+        if id_asset:
+            comando["id_asset"] = id_asset
             
         return await manager.send_command(comando)
     except HTTPException as he:
@@ -96,29 +96,29 @@ async def procesar_comando(accion: str, id_equipo: str = None, request: Request 
         logger.error(f"Error procesando {accion}: {e}")
         raise HTTPException(status_code=500, detail="Error interno en el servidor nube")
 
-@app.get("/historial_fisico_raw/{id_equipo}")
-async def get_historial(id_equipo: str, request: Request):
-    return await procesar_comando("historial", id_equipo, request)
+@app.get("/historial_fisico_raw/{id_asset}")
+async def get_historial(id_asset: str, request: Request):
+    return await procesar_comando("historial", id_asset, request)
 
-@app.get("/analisis/{id_equipo}")
-async def get_analisis(id_equipo: str, request: Request):
-    return await procesar_comando("analisis", id_equipo, request)
+@app.get("/analisis/{id_asset}")
+async def get_analisis(id_asset: str, request: Request):
+    return await procesar_comando("analisis", id_asset, request)
 
-@app.get("/eventos/{id_equipo}")
-async def get_eventos(id_equipo: str, request: Request):
-    return await procesar_comando("eventos", id_equipo, request)
+@app.get("/eventos/{id_asset}")
+async def get_eventos(id_asset: str, request: Request):
+    return await procesar_comando("eventos", id_asset, request)
 
-@app.get("/equipos")
-async def get_equipos():
-    return await procesar_comando("equipos")
+@app.get("/assets")
+async def get_assets():
+    return await procesar_comando("assets")
 
 @app.get("/dashboard/resumen")
 async def get_dashboard():
     return await procesar_comando("dashboard")
 
-@app.get("/sensores/{id_equipo}")
-async def get_sensores(id_equipo: str):
-    return await procesar_comando("sensores", id_equipo)
+@app.get("/sensores/{id_asset}")
+async def get_sensores(id_asset: str):
+    return await procesar_comando("sensores", id_asset)
 
 @app.get("/")
 def raiz(): return {"estado": "SOCKET SERVER BLINDADO V2"}
