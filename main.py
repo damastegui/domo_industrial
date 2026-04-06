@@ -23,20 +23,20 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connection = websocket
-        logger.info("--- PLANTA CONECTADA ---")
+        logger.info("--- PLANT CONNECTED ---")
 
     def disconnect(self, websocket: WebSocket):
         if self.active_connection == websocket:
             self.active_connection = None
-            logger.info("--- PLANTA DESCONECTADA ---")
+            logger.info("--- PLANT DISCONNECTED ---")
             for req_id, future in self.pending_requests.items():
                 if not future.done():
-                    future.set_exception(HTTPException(status_code=503, detail="Planta se desconectó repentinamente"))
+                    future.set_exception(HTTPException(status_code=503, detail="Plant disconnected unexpectedly"))
             self.pending_requests.clear()
 
     async def send_command(self, command: dict):
         if not self.active_connection:
-            raise HTTPException(status_code=503, detail="La planta está desconectada (Esperando reconexión...)")
+            raise HTTPException(status_code=503, detail="Plant is disconnected (Waiting for reconnection)")
         
         request_id = str(uuid.uuid4())
         future = asyncio.get_running_loop().create_future()
@@ -50,11 +50,11 @@ class ConnectionManager:
         except asyncio.TimeoutError:
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
-            raise HTTPException(status_code=504, detail="La planta tardó demasiado en responder")
+            raise HTTPException(status_code=504, detail="Plant took too long to respond")
         except Exception as e:
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
-            raise HTTPException(status_code=500, detail=f"Error de comunicación: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Communication error: {str(e)}")
 
     def resolve_request(self, request_id, data):
         if request_id in self.pending_requests:
@@ -79,13 +79,13 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        logger.error(f"Error crítico en socket: {e}")
+        logger.error(f"Critical socket error: {e}")
         manager.disconnect(websocket)
 
-async def procesar_comando(accion: str, id_asset: str = None, request: Request = None):
+async def process_command(action: str, id_asset: str = None, request: Request = None):
     try:
         params = dict(request.query_params) if request else {}
-        comando = {"accion": accion, "params": params}
+        command = {"action": action, "params": params}
         if id_asset:
             comando["id_asset"] = id_asset
             
@@ -93,32 +93,32 @@ async def procesar_comando(accion: str, id_asset: str = None, request: Request =
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"Error procesando {accion}: {e}")
-        raise HTTPException(status_code=500, detail="Error interno en el servidor nube")
+        logger.error(f"Error processing {action}: {e}")
+        raise HTTPException(status_code=500, detail="Internal cloud server error")
 
 @app.get("/historial_fisico_raw/{id_asset}")
-async def get_historial(id_asset: str, request: Request):
-    return await procesar_comando("historial", id_asset, request)
+async def get_history(id_asset: str, request: Request):
+    return await process_command("history", id_asset, request)
 
 @app.get("/analisis/{id_asset}")
-async def get_analisis(id_asset: str, request: Request):
-    return await procesar_comando("analisis", id_asset, request)
+async def get_analysis(id_asset: str, request: Request):
+    return await process_command("analysis", id_asset, request)
 
 @app.get("/eventos/{id_asset}")
-async def get_eventos(id_asset: str, request: Request):
-    return await procesar_comando("eventos", id_asset, request)
+async def get_events(id_asset: str, request: Request):
+    return await process_command("events", id_asset, request)
 
 @app.get("/assets")
 async def get_assets():
-    return await procesar_comando("assets")
+    return await process_command("assets")
 
 @app.get("/dashboard/resumen")
 async def get_dashboard():
-    return await procesar_comando("dashboard")
+    return await process_command("dashboard")
 
 @app.get("/sensores/{id_asset}")
-async def get_sensores(id_asset: str):
-    return await procesar_comando("sensores", id_asset)
+async def get_sensors(id_asset: str):
+    return await process_command("sensors", id_asset)
 
 @app.get("/")
-def raiz(): return {"estado": "SOCKET SERVER BLINDADO V2"}
+def root(): return {"status": "SOCKET SERVER ARMORED V2"}
