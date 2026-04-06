@@ -96,15 +96,15 @@ async def process_command(action: str, id_asset: str = None, request: Request = 
         logger.error(f"Error processing {action}: {e}")
         raise HTTPException(status_code=500, detail="Internal cloud server error")
 
-@app.get("/historial_fisico_raw/{id_asset}")
+@app.get("/raw_physical_history/{id_asset}")
 async def get_history(id_asset: str, request: Request):
     return await process_command("history", id_asset, request)
 
-@app.get("/analisis/{id_asset}")
+@app.get("/analysis/{id_asset}")
 async def get_analysis(id_asset: str, request: Request):
     return await process_command("analysis", id_asset, request)
 
-@app.get("/eventos/{id_asset}")
+@app.get("/events/{id_asset}")
 async def get_events(id_asset: str, request: Request):
     return await process_command("events", id_asset, request)
 
@@ -112,11 +112,11 @@ async def get_events(id_asset: str, request: Request):
 async def get_assets():
     return await process_command("assets")
 
-@app.get("/dashboard/resumen")
+@app.get("/dashboard/summary")
 async def get_dashboard():
     return await process_command("dashboard")
 
-@app.get("/sensores/{id_asset}")
+@app.get("/sensors/{id_asset}")
 async def get_sensors(id_asset: str):
     return await process_command("sensors", id_asset)
 
