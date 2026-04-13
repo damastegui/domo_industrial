@@ -126,7 +126,8 @@ async def get_sensors(id_asset: str):
 
 @app.get("/configurations/{config_key}")
 async def get_config(config_key: str):
-    return await process_command("configuraciones", config_key)
+    command = {"accion": "configuraciones", "config_key": config_key, "params": {}}
+    return await manager.send_command(command)
 
 @app.get("/")
 def root(): 
