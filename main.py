@@ -36,7 +36,7 @@ class ConnectionManager:
 
     async def send_command(self, command: dict):
         if not self.active_connection:
-            raise HTTPException(status_code=503, detail="Plant is disconnected (Waiting for reconnection)")
+            raise HTTPException(status_code=503, detail="Plant is disconnected")
         
         request_id = str(uuid.uuid4())
         future = asyncio.get_running_loop().create_future()
@@ -46,11 +46,15 @@ class ConnectionManager:
         
         try:
             await self.active_connection.send_json(command)
-            return await asyncio.wait_for(future, timeout=8.0)
+            return await asyncio.wait_for(future, timeout=12.0)
         except asyncio.TimeoutError:
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
             raise HTTPException(status_code=504, detail="Plant took too long to respond")
+        except HTTPException as he:
+            if request_id in self.pending_requests:
+                del self.pending_requests[request_id]
+            raise he
         except Exception as e:
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
@@ -74,7 +78,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if "request_id" in data:
                 manager.resolve_request(data["request_id"], data["payload"])
             elif "tipo" in data and data["tipo"] == "keep_alive":
-                logger.info("Keep-Alive recibido de planta")
+                logger.info("Keep-Alive received from plant")
                 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
@@ -82,31 +86,31 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"Critical socket error: {e}")
         manager.disconnect(websocket)
 
-async def process_command(action: str, id_asset: str = None, request: Request = None):
+async def process_command(accion: str, id_asset: str = None, request: Request = None):
     try:
         params = dict(request.query_params) if request else {}
-        command = {"action": action, "params": params}
+        command = {"accion": accion, "params": params}
         if id_asset:
-            comando["id_asset"] = id_asset
+            command["id_asset"] = id_asset
             
-        return await manager.send_command(comando)
+        return await manager.send_command(command)
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"Error processing {action}: {e}")
+        logger.error(f"Error processing {accion}: {e}")
         raise HTTPException(status_code=500, detail="Internal cloud server error")
 
 @app.get("/raw_physical_history/{id_asset}")
 async def get_history(id_asset: str, request: Request):
-    return await process_command("history", id_asset, request)
+    return await process_command("historial", id_asset, request)
 
 @app.get("/analysis/{id_asset}")
 async def get_analysis(id_asset: str, request: Request):
-    return await process_command("analysis", id_asset, request)
+    return await process_command("analisis", id_asset, request)
 
 @app.get("/events/{id_asset}")
 async def get_events(id_asset: str, request: Request):
-    return await process_command("events", id_asset, request)
+    return await process_command("eventos", id_asset, request)
 
 @app.get("/assets")
 async def get_assets():
@@ -118,7 +122,12 @@ async def get_dashboard():
 
 @app.get("/sensors/{id_asset}")
 async def get_sensors(id_asset: str):
-    return await process_command("sensors", id_asset)
+    return await process_command("sensores", id_asset)
+
+@app.get("/configurations/{config_key}")
+async def get_config(config_key: str):
+    return await process_command("configuraciones", config_key)
 
 @app.get("/")
-def root(): return {"status": "SOCKET SERVER ARMORED V2"}
+def root(): 
+    return {"status": "SOCKET SERVER ARMORED V3"}
