@@ -193,6 +193,10 @@ async def get_bad_actors(request: Request):
 async def get_users(request: Request):
     return await process_command("users", request=request)
 
+@app.get("/dashboard/lines/{id_line}/assets")
+async def get_line_assets(id_line: str, request: Request):
+    return await process_command("line_assets", id_line, request)
+
 @app.get("/")
 def root(): 
     return {"status": "SOCKET SERVER ARMORED V4"}
