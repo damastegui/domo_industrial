@@ -99,6 +99,16 @@ async def process_command(accion: str, id_asset: str = None, request: Request = 
     except Exception as e:
         logger.error(f"Error processing {accion}: {e}")
         raise HTTPException(status_code=500, detail="Internal cloud server error")
+        
+async def process_post_command(accion: str, payload: dict = None):
+    try:
+        command = {"accion": accion, "payload": payload}
+        return await manager.send_command(command)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error processing {accion}: {e}")
+        raise HTTPException(status_code=500, detail="Internal cloud server error")
 
 @app.get("/raw_physical_history/{id_asset}")
 async def get_history(id_asset: str, request: Request):
@@ -127,6 +137,20 @@ async def get_sensors(id_asset: str):
 @app.get("/configurations/{config_key}")
 async def get_config(config_key: str):
     return await process_command("configuraciones", config_key)
+
+@app.post("/auth/login")
+async def login(request: Request):
+    form_data = await request.form()
+    payload = {
+        "username": form_data.get("username"),
+        "password": form_data.get("password")
+    }
+    return await process_post_command("login", payload)
+
+@app.post("/integration/sap")
+async def create_sap_order(request: Request):
+    payload = await request.json()
+    return await process_post_command("sap_integration", payload)
 
 @app.get("/")
 def root(): 
