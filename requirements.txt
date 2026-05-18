@@ -2,3 +2,5 @@ fastapi
 uvicorn
 pydantic
 websockets
+python-multipart
+requests
