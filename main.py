@@ -177,6 +177,22 @@ async def get_sensors(id_asset: str, request: Request):
 async def get_config(config_key: str, request: Request):
     return await process_command("configuraciones", config_key, request)
 
+@app.get("/dashboard/lines")
+async def get_dashboard_lines(request: Request):
+    return await process_command("dashboard_lines", request=request)
+
+@app.get("/dashboard/kpis")
+async def get_dashboard_kpis(request: Request):
+    return await process_command("dashboard_kpis", request=request)
+
+@app.get("/dashboard/bad-actors")
+async def get_bad_actors(request: Request):
+    return await process_command("dashboard_bad_actors", request=request)
+
+@app.get("/users")
+async def get_users(request: Request):
+    return await process_command("users", request=request)
+
 @app.get("/")
 def root(): 
     return {"status": "SOCKET SERVER ARMORED V4"}
