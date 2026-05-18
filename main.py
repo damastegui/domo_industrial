@@ -86,10 +86,16 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"Critical socket error: {e}")
         manager.disconnect(websocket)
 
+# --- Funciones procesadoras actualizadas con Headers ---
+
 async def process_command(accion: str, id_asset: str = None, request: Request = None):
     try:
         params = dict(request.query_params) if request else {}
-        command = {"accion": accion, "params": params}
+        headers = {}
+        if request and "authorization" in request.headers:
+            headers["Authorization"] = request.headers["authorization"]
+
+        command = {"accion": accion, "params": params, "headers": headers}
         if id_asset:
             command["id_asset"] = id_asset
             
@@ -99,16 +105,36 @@ async def process_command(accion: str, id_asset: str = None, request: Request = 
     except Exception as e:
         logger.error(f"Error processing {accion}: {e}")
         raise HTTPException(status_code=500, detail="Internal cloud server error")
-        
-async def process_post_command(accion: str, payload: dict = None):
+
+async def process_post_command(accion: str, payload: dict = None, request: Request = None):
     try:
-        command = {"accion": accion, "payload": payload}
+        headers = {}
+        if request and "authorization" in request.headers:
+            headers["Authorization"] = request.headers["authorization"]
+
+        command = {"accion": accion, "payload": payload, "headers": headers}
         return await manager.send_command(command)
     except HTTPException as he:
         raise he
     except Exception as e:
         logger.error(f"Error processing {accion}: {e}")
         raise HTTPException(status_code=500, detail="Internal cloud server error")
+
+# --- Endpoints ---
+
+@app.post("/auth/login")
+async def login(request: Request):
+    form_data = await request.form()
+    payload = {
+        "username": form_data.get("username"),
+        "password": form_data.get("password")
+    }
+    return await process_post_command("login", payload, request)
+
+@app.post("/integration/sap")
+async def create_sap_order(request: Request):
+    payload = await request.json()
+    return await process_post_command("sap_integration", payload, request)
 
 @app.get("/raw_physical_history/{id_asset}")
 async def get_history(id_asset: str, request: Request):
@@ -123,35 +149,21 @@ async def get_events(id_asset: str, request: Request):
     return await process_command("eventos", id_asset, request)
 
 @app.get("/assets")
-async def get_assets():
-    return await process_command("assets")
+async def get_assets(request: Request):
+    return await process_command("assets", request=request)
 
 @app.get("/dashboard/summary")
-async def get_dashboard():
-    return await process_command("dashboard")
+async def get_dashboard(request: Request):
+    return await process_command("dashboard", request=request)
 
 @app.get("/sensors/{id_asset}")
-async def get_sensors(id_asset: str):
-    return await process_command("sensores", id_asset)
+async def get_sensors(id_asset: str, request: Request):
+    return await process_command("sensores", id_asset, request)
 
 @app.get("/configurations/{config_key}")
-async def get_config(config_key: str):
-    return await process_command("configuraciones", config_key)
-
-@app.post("/auth/login")
-async def login(request: Request):
-    form_data = await request.form()
-    payload = {
-        "username": form_data.get("username"),
-        "password": form_data.get("password")
-    }
-    return await process_post_command("login", payload)
-
-@app.post("/integration/sap")
-async def create_sap_order(request: Request):
-    payload = await request.json()
-    return await process_post_command("sap_integration", payload)
+async def get_config(config_key: str, request: Request):
+    return await process_command("configuraciones", config_key, request)
 
 @app.get("/")
 def root(): 
-    return {"status": "SOCKET SERVER ARMORED V3"}
+    return {"status": "SOCKET SERVER ARMORED V4"}
