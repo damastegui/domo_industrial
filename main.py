@@ -197,6 +197,34 @@ async def get_users(request: Request):
 async def get_line_assets(id_line: str, request: Request):
     return await process_command("line_assets", id_line, request)
 
+@app.post("/users")
+async def create_user(request: Request):
+    payload = await request.json()
+    return await process_post_command("create_user", payload, request)
+
+@app.put("/users/{user_id}")
+async def update_user(user_id: str, request: Request):
+    payload = await request.json()
+    try:
+        headers = {}
+        if "authorization" in request.headers:
+            headers["Authorization"] = request.headers["authorization"]
+        command = {"accion": "update_user", "payload": payload, "headers": headers, "id_asset": user_id}
+        return await manager.send_command(command)
+    except HTTPException as he: raise he
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/users/{user_id}")
+async def delete_user(user_id: str, request: Request):
+    try:
+        headers = {}
+        if "authorization" in request.headers:
+            headers["Authorization"] = request.headers["authorization"]
+        command = {"accion": "delete_user", "headers": headers, "id_asset": user_id}
+        return await manager.send_command(command)
+    except HTTPException as he: raise he
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/")
 def root(): 
     return {"status": "SOCKET SERVER ARMORED V4"}
