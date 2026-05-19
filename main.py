@@ -99,7 +99,7 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"Critical socket error: {e}")
         manager.disconnect(websocket)
 
-# --- Funciones procesadoras actualizadas con Headers ---
+# --- Funciones procesadoras ---
 
 async def process_command(accion: str, id_asset: str = None, request: Request = None):
     try:
@@ -112,12 +112,18 @@ async def process_command(accion: str, id_asset: str = None, request: Request = 
         if id_asset:
             command["id_asset"] = id_asset
             
-        return await manager.send_command(command)
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logger.error(f"Error processing {accion}: {e}")
-        raise HTTPException(status_code=500, detail="Internal cloud server error")
+        result = await manager.send_command(command)
+        
+        if isinstance(result, dict) and "error" in result:
+            status_code = 500
+            if "401" in str(result["error"]): status_code = 401
+            elif "403" in str(result["error"]): status_code = 403
+            elif "404" in str(result["error"]): status_code = 404
+            raise HTTPException(status_code=status_code, detail=result.get("detail", result["error"]))
+            
+        return result
+    except HTTPException as he: raise he
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
 async def process_post_command(accion: str, payload: dict = None, request: Request = None):
     try:
@@ -126,12 +132,18 @@ async def process_post_command(accion: str, payload: dict = None, request: Reque
             headers["Authorization"] = request.headers["authorization"]
 
         command = {"accion": accion, "payload": payload, "headers": headers}
-        return await manager.send_command(command)
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logger.error(f"Error processing {accion}: {e}")
-        raise HTTPException(status_code=500, detail="Internal cloud server error")
+        result = await manager.send_command(command)
+        
+        if isinstance(result, dict) and "error" in result:
+            status_code = 500
+            if "401" in str(result["error"]): status_code = 401
+            elif "403" in str(result["error"]): status_code = 403
+            elif "404" in str(result["error"]): status_code = 404
+            raise HTTPException(status_code=status_code, detail=result.get("detail", result["error"]))
+            
+        return result
+    except HTTPException as he: raise he
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
 # --- Endpoints ---
 
@@ -224,6 +236,40 @@ async def delete_user(user_id: str, request: Request):
         return await manager.send_command(command)
     except HTTPException as he: raise he
     except Exception as e: raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/microsoft")
+async def microsoft_login(request: Request):
+    return await process_command("microsoft_login", request=request)
+
+@app.get("/auth/me")
+async def get_me(request: Request):
+    return await process_command("auth_me", request=request)
+
+@app.post("/alerts/events")
+async def register_alert_event(request: Request):
+    payload = await request.json()
+    return await process_post_command("register_alert_event", payload, request)
+
+@app.get("/alerts/tracking/kpis")
+async def get_alerts_kpis(request: Request):
+    return await process_command("alerts_kpis", request=request)
+
+@app.get("/alerts/tracking/counts")
+async def get_alerts_counts(request: Request):
+    return await process_command("alerts_counts", request=request)
+
+@app.get("/alerts/tracking/history")
+async def get_alerts_history(request: Request):
+    return await process_command("alerts_history", request=request)
+
+@app.get("/alerts/tracking/users")
+async def get_alerts_user_stats(request: Request):
+    return await process_command("alerts_user_stats", request=request)
+
+@app.post("/alerts/findings")
+async def register_alert_finding(request: Request):
+    payload = await request.json()
+    return await process_post_command("register_alert_finding", payload, request)
 
 @app.get("/")
 def root(): 
