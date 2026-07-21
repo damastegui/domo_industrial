@@ -271,6 +271,169 @@ async def register_alert_finding(request: Request):
     payload = await request.json()
     return await process_post_command("register_alert_finding", payload, request)
 
+@app.post("/auth/setup-password")
+async def setup_password(request: Request):
+    payload = await request.json()
+    return await process_post_command("setup_password", payload, request)
+
+@app.get("/assets/{id_asset}/runs")
+async def get_asset_runs(id_asset: str, request: Request):
+    return await process_command("get_asset_runs", id_asset, request)
+
+@app.post("/users/{user_id}/resend-setup")
+async def resend_setup(user_id: str, request: Request):
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "resend_setup", "id_asset": user_id, "headers": headers}
+    return await manager.send_command(command)
+
+@app.get("/production-lines")
+async def get_production_lines(request: Request):
+    return await process_command("get_production_lines", request=request)
+
+@app.post("/production-lines")
+async def create_production_line(request: Request):
+    payload = await request.json()
+    return await process_post_command("create_production_line", payload, request)
+
+@app.put("/production-lines/{id_line}")
+async def update_production_line(id_line: str, request: Request):
+    payload = await request.json()
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "update_production_line", "payload": payload, "headers": headers, "id_asset": id_line}
+    return await manager.send_command(command)
+
+@app.delete("/production-lines/{id_line}")
+async def delete_production_line(id_line: str, request: Request):
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "delete_production_line", "headers": headers, "id_asset": id_line}
+    return await manager.send_command(command)
+
+@app.get("/assets/management")
+async def get_assets_management(request: Request):
+    return await process_command("get_assets_management", request=request)
+
+@app.post("/assets")
+async def create_asset(request: Request):
+    payload = await request.json()
+    return await process_post_command("create_asset", payload, request)
+
+@app.put("/assets/{id_asset}")
+async def update_asset(id_asset: str, request: Request):
+    payload = await request.json()
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "update_asset", "payload": payload, "headers": headers, "id_asset": id_asset}
+    return await manager.send_command(command)
+
+@app.delete("/assets/{id_asset}")
+async def delete_asset_endpoint(id_asset: str, request: Request):
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "delete_asset", "headers": headers, "id_asset": id_asset}
+    return await manager.send_command(command)
+
+@app.put("/assets/{id_asset}/status")
+async def update_asset_status(id_asset: str, request: Request):
+    payload = await request.json()
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "update_asset_status", "payload": payload, "headers": headers, "id_asset": id_asset}
+    return await manager.send_command(command)
+
+@app.get("/sensor-config/{id_asset}")
+async def get_sensor_config(id_asset: str, request: Request):
+    return await process_command("get_sensor_config", id_asset, request)
+
+@app.post("/sensor-config")
+async def create_sensor_config(request: Request):
+    payload = await request.json()
+    return await process_post_command("create_sensor_config", payload, request)
+
+@app.put("/sensor-config/{id_variable}")
+async def update_sensor_config(id_variable: str, request: Request):
+    payload = await request.json()
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "update_sensor_config", "payload": payload, "headers": headers, "id_asset": id_variable}
+    return await manager.send_command(command)
+
+@app.delete("/sensor-config/{id_variable}")
+async def delete_sensor_config(id_variable: str, request: Request):
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "delete_sensor_config", "headers": headers, "id_asset": id_variable}
+    return await manager.send_command(command)
+
+@app.get("/model-config/{id_asset}")
+async def get_model_config(id_asset: str, request: Request):
+    return await process_command("get_model_config", id_asset, request)
+
+@app.post("/model-config")
+async def create_model_config(request: Request):
+    payload = await request.json()
+    return await process_post_command("create_model_config", payload, request)
+
+@app.put("/model-config/{id_config}")
+async def update_model_config(id_config: str, request: Request):
+    payload = await request.json()
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "update_model_config", "payload": payload, "headers": headers, "id_asset": id_config}
+    return await manager.send_command(command)
+
+@app.delete("/model-config/{id_config}")
+async def delete_model_config(id_config: str, request: Request):
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "delete_model_config", "headers": headers, "id_asset": id_config}
+    return await manager.send_command(command)
+
+@app.get("/models/{id_asset}/metrics")
+async def get_model_metrics(id_asset: str, request: Request):
+    return await process_command("get_model_metrics", id_asset, request)
+
+@app.post("/training/{id_asset}")
+async def training_start(id_asset: str, request: Request):
+    params = dict(request.query_params)
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "training_start", "params": params, "headers": headers, "id_asset": id_asset}
+    return await manager.send_command(command)
+
+@app.get("/training/{id_asset}/status")
+async def training_status(id_asset: str, request: Request):
+    return await process_command("training_status", id_asset, request)
+
+@app.post("/training/{id_asset}/suggest-range")
+async def training_suggest_range(id_asset: str, request: Request):
+    params = dict(request.query_params)
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "training_suggest_range", "params": params, "headers": headers, "id_asset": id_asset}
+    return await manager.send_command(command)
+
+@app.get("/training/{id_asset}/drift-status")
+async def training_drift_status(id_asset: str, request: Request):
+    return await process_command("training_drift_status", id_asset, request)
+
+@app.delete("/training/{id_asset}/status")
+async def training_delete_status(id_asset: str, request: Request):
+    headers = {}
+    if "authorization" in request.headers: headers["Authorization"] = request.headers["authorization"]
+    command = {"accion": "training_delete_status", "headers": headers, "id_asset": id_asset}
+    return await manager.send_command(command)
+
+@app.get("/training/{id_asset}/histograms")
+async def training_histograms(id_asset: str, request: Request):
+    return await process_command("training_histograms", id_asset, request)
+
+@app.get("/training/{id_asset}/temporal-plot")
+async def training_temporal_plot(id_asset: str, request: Request):
+    return await process_command("training_temporal_plot", id_asset, request)
+
 @app.get("/")
 def root(): 
-    return {"status": "SOCKET SERVER ARMORED V4"}
+    return {"status": "SOCKET SERVER ARMORED V5"}
