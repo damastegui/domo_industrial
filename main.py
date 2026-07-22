@@ -15,8 +15,11 @@ app = FastAPI()
     #allow_methods=["*"], allow_headers=["*"]
 #)
 ORIGINES_PERMITIDOS = [
-    "http://domo-dashboard-planta-2026.s3-website-us-east-1.amazonaws.com",
-    "https://domo-dashboard-planta-2026.s3-website-us-east-1.amazonaws.com",
+    # Reemplazado por CloudFront (HTTPS) para poder usar Microsoft Entra ID (MSAL requiere secure context).
+    # Descomentar solo si se vuelve a servir el frontend directo desde el static website hosting de S3.
+    # "http://domo-dashboard-planta-2026.s3-website-us-east-1.amazonaws.com",
+    # "https://domo-dashboard-planta-2026.s3-website-us-east-1.amazonaws.com",
+    "https://d1gi8mg9znzd1h.cloudfront.net",
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
