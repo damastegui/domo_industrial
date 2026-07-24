@@ -242,8 +242,7 @@ async def delete_user(user_id: str, request: Request):
 
 @app.post("/auth/microsoft")
 async def microsoft_login(request: Request):
-    payload = await request.json()
-    return await process_post_command("microsoft_login", payload, request)
+    return await process_command("microsoft_login", request=request)
 
 @app.get("/auth/me")
 async def get_me(request: Request):
@@ -437,6 +436,10 @@ async def training_histograms(id_asset: str, request: Request):
 @app.get("/training/{id_asset}/temporal-plot")
 async def training_temporal_plot(id_asset: str, request: Request):
     return await process_command("training_temporal_plot", id_asset, request)
+
+@app.get("/training/{id_asset}/calibration")
+async def training_calibration(id_asset: str, request: Request):
+    return await process_command("training_calibration", id_asset, request)
 
 @app.get("/")
 def root(): 
