@@ -242,7 +242,8 @@ async def delete_user(user_id: str, request: Request):
 
 @app.post("/auth/microsoft")
 async def microsoft_login(request: Request):
-    return await process_command("microsoft_login", request=request)
+    payload = await request.json()
+    return await process_post_command("microsoft_login", payload, request)
 
 @app.get("/auth/me")
 async def get_me(request: Request):
