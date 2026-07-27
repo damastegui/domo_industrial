@@ -62,7 +62,7 @@ class ConnectionManager:
         
         try:
             await self.active_connection.send_json(command)
-            return await asyncio.wait_for(future, timeout=12.0)
+            return await asyncio.wait_for(future, timeout=30.0)
         except asyncio.TimeoutError:
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
