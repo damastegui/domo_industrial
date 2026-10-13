@@ -190,6 +190,7 @@ PROXY_ROUTES = [
     ("/assets/{id_asset}/drift",           "GET",     "asset_drift",               True,  True,  False, True),
     ("/assets/{id_asset}/baseline",        "GET",     "asset_baseline",            True,  True,  False, True),
     ("/assets/{id_asset}/interval",        "GET",     "asset_interval",            True,  True,  False, True),
+    ("/assets/{id_asset}/seen",            "POST",    "asset_seen",                True,  False, False, True),
     ("/users/{user_id}/resend-setup",      "POST",    "resend_setup",              True,  False, False, False),
     ("/production-lines",                  "GET",     "get_production_lines",      False, True,  False, True),
     ("/production-lines",                  "POST",    "create_production_line",    False, False, True,  True),
