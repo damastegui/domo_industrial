@@ -177,7 +177,6 @@ PROXY_ROUTES = [
     ("/users/{user_id}",                   "DELETE",  "delete_user",               True,  False, False, False),
     ("/auth/microsoft",                    "POST",    "microsoft_login",           False, False, True,  True),
     ("/auth/me",                           "GET",     "auth_me",                   False, True,  False, True),
-    ("/alerts/events",                     "POST",    "register_alert_event",      False, False, True,  True),
     ("/alerts/tracking/kpis",              "GET",     "alerts_kpis",               False, True,  False, True),
     ("/alerts/tracking/counts",            "GET",     "alerts_counts",             False, True,  False, True),
     ("/alerts/tracking/history",           "GET",     "alerts_history",            False, True,  False, True),
