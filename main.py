@@ -213,6 +213,9 @@ PROXY_ROUTES = [
     ("/training/{id_asset}/suggest-range", "POST",    "training_suggest_range",    True,  True,  False, False),
     ("/training/{id_asset}/drift-status",  "GET",     "training_drift_status",     True,  True,  False, True),
     ("/training/{id_asset}/status",        "DELETE",  "training_delete_status",    True,  False, False, False),
+    # Energy deviation (backend/services/api/src/energy_routes.py); the line's name travels as the id.
+    ("/energy",                            "GET",     "energy_summary",            False, False, False, True),
+    ("/energy/lines/{line}",               "GET",     "energy_line",               True,  False, False, True),
 ]
 
 def _register_proxy_route(path, method, action, sends_id, sends_params, sends_body, maps_errors):
