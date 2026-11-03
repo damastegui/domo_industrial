@@ -13,6 +13,7 @@ import uuid
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("RenderServer")
@@ -35,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# What the plant answers is relayed as is: the fleet summary, long and repetitive, reaches
+# the browser in a fraction of its size compressed.
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 PLANT_RESPONSE_TIMEOUT_SECONDS = 12
 # The analysis reads work through weeks of per-second readings; they outlast the
